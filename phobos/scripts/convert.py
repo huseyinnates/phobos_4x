@@ -66,7 +66,7 @@ def main(args):
     if len(output_split) < 1:
         log.error(f"Invalid output spec {args.output}")
         return 4
-    elif len(output_split) == 1:
+    elif len(output_split) == 1 or path.isdir(args.output):
         output_format = "DIRECTORY"
     elif output_split[-1] in ["smurfa"]:
         output_format = "SMURFA"

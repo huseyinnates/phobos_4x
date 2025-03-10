@@ -108,7 +108,7 @@ def main(args):
         robot = Robot(inputfile=args.input)
 
     # Check results
-    if not world and not not robot:
+    if not world and not robot:
         log.error("You have specified something which could not be converted to neither a robot nor a world/arrangement")
         return 6
 

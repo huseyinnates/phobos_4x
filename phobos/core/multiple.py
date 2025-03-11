@@ -22,7 +22,7 @@ class Entity(Representation, SmurfBase):
         assert world is not None
         self.model = _singular(model)
         self.origin = _singular(origin) if origin is not None else representation.Pose()
-        self._file = os.path.normpath(os.path.join(os.path.dirname(world.inputfile), file)) if not os.path.isabs(file) else file
+        self._file = os.path.normpath(os.path.join(os.path.dirname(world.inputfile), file)) if file and not os.path.isabs(file) else file
         if model is None and file is not None:
             if self._file.lower().rsplit(".", 1)[-1] in ["smurfs", "smurfa"]:
                 try:
@@ -74,7 +74,7 @@ class Entity(Representation, SmurfBase):
     @property
     def file(self):
         return os.path.relpath(
-            getattr(self.model, "smurffile", getattr(self.model, "xmlfile", getattr(self.model, "inputfile"))),
+            getattr(self.model, "smurffile", getattr(self.model, "xmlfile", getattr(self.model, "inputfiles"))),
             os.path.dirname(self.model._related_world_instance.inputfile)
         )
 
@@ -187,6 +187,7 @@ class Arrangement(Representation, SmurfBase):
                 entity_defs = file_dict.get("entities", file_dict.get("smurfa", file_dict.get("smurfs", [])))
                 for e_def in entity_defs:
                     self.add_entity(Entity(world=self, **e_def))
+                self.name = file_dict.get('name')
             else:
                 raise IOError(f"The given file has an extension ({ext}) that cannot be parsed as Arrangement.")
         self.excludes += ["inputfile"]
@@ -289,8 +290,9 @@ class Arrangement(Representation, SmurfBase):
             assembly = root_entity.model.assemble()
         else:
             raise TypeError(f"Wrong model type of entity {root_entity.name}: {type(root_entity.model)}")
+        assembly.name = self.name
         assembly.unlink_from_world()
-        assembly.rename_all(prefix=root_entity.name + "_" if self.name is None else self.name + "_" + root_entity.name + "_")
+        assembly.rename_all(prefix=root_entity.name + "_")
         entities_in_tree = [root_entity]
 
         attached = 1
@@ -307,7 +309,7 @@ class Arrangement(Representation, SmurfBase):
                     parent_entity, parent_link_name = entity._anchor.split("::", 1)
                 if parent_entity in [str(e) for e in entities_in_tree]:
                     parent_link = assembly.get_link(parent_entity+"_"+parent_link_name, verbose=True)
-                    assert parent_link is not None, f"parent link {parent_entity}_{parent_link_name} not found "+str(entity)
+                    assert parent_link is not None, f"parent link {parent_entity}::{parent_link_name} not found "+str(entity)
                     if isinstance(root_entity.model, Robot):
                         attach_model = entity.model.duplicate()
                         assembly.unlink_from_world()
@@ -325,6 +327,7 @@ class Arrangement(Representation, SmurfBase):
                     attach_model.rename_all(prefix=entity.name + "_", do_not_double=False)
                     origin = entity.origin.duplicate()
                     origin.relative_to = str(entity.origin.relative_to).replace("::", "_", 1)
+                    #print(f"{child_link} -- {origin.position},{origin.quaternion_dict} -> {parent_link}")
                     assembly.attach(
                         other=attach_model,
                         joint=representation.Joint(
@@ -351,6 +354,10 @@ class Arrangement(Representation, SmurfBase):
         assert outputfile.endswith("smurfa")
         self.inputfile = os.path.abspath(outputfile)
         out = self.to_yaml()
+        # Resolve entities
+        out['entities'] = []
+        for entity in self.entities:
+            out['entities'].append(entity.to_yaml())
         if not os.path.exists(os.path.dirname(os.path.abspath(outputfile))):
             os.makedirs(os.path.dirname(os.path.abspath(outputfile)), exist_ok=True)
         with open(outputfile, "w") as f:

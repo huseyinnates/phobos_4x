@@ -107,6 +107,7 @@ definitions = {
     'model': {},
     'submechanisms': {},
     'submodeltypes': {},
+    'mechanism': {},
 }
 
 def_settings = {key: {} for key in definitions.keys()}

@@ -46,7 +46,9 @@ requirements = {
     "scipy": "scipy",
     "pkg_resources": "setuptools",
     "collada": "pycollada",
-    "pydot": "pydot"
+    "pydot": "pydot",
+    "decorator": "decorator",
+    "chroma": "chroma"
 }
 
 optional_requirements = {

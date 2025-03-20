@@ -106,7 +106,28 @@ definitions = {
     'materials': {},
     'model': {},
     'submechanisms': {},
-    'submodeltypes': {},
+    'submodeltypes': {
+    'mechanism': {
+        'definitions': {
+            'description': 'A mechanical submodel',
+            'properties': ['property1', 'property2'],
+        },
+        'interfaces': {
+            'interface1': 'description of interface1',
+            'interface2': 'description of interface2',
+        },
+    },
+    'sensor_module': {
+        'definitions': {
+            'description': 'A sensor module',
+            'properties': ['sensitivity', 'range'],
+        },
+        'interfaces': {
+            'data_output': 'Outputs sensor data',
+            'power_input': 'Receives power',
+        },
+    },
+    },
     'mechanism': {},
 }
 
